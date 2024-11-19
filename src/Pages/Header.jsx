@@ -7,7 +7,7 @@ import { grey } from '@mui/material/colors';
 import Logo from "../assets/logo.png";
 export default function Header() {
     return (
-        <header class="flex flex-col justify-center items-center p-8 ">
+        <header className="flex flex-col justify-center items-center p-8 ">
             <img src={Logo} alt="Giphy Logo" className='max-h-14 max-w-14 pb-3' />
             <OutlinedInput
                 id="outlined-adornment-weight"
