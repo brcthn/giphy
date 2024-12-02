@@ -2,7 +2,6 @@ import { QueryClient } from "@tanstack/react-query";
 export const queryClient = new QueryClient();
 
 export async function fetchEvents({ pageParam = 0 }) {
-  console.log("pageParam" + pageParam);
   const apiKey = import.meta.env.VITE_GIPHY_API_KEY;
   const limit = 10;
   const offset = pageParam * limit;
@@ -24,4 +23,6 @@ export async function fetchEvents({ pageParam = 0 }) {
   const pagination = await jsonData.pagination;
 
   return { events, pagination };
+  // const events = [];
+  // return { events };
 }

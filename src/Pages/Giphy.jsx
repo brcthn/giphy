@@ -3,13 +3,14 @@ import { fetchEvents } from '../util/http.js';
 import Header from '../Pages/Header.jsx';
 import Box from '@mui/material/Box';
 import React from 'react';
-
+import LoadingIndicator from "../Components/LoadingIndicator.jsx";
+import Error from '../Components/Error.jsx';
 import { useCallback, useMemo, useRef } from "react";
 
 export default function Giphy() {
     const observer = useRef();
-
-    const { data, error, fetchNextPage, hasNextPage, isFetching, isLoading } = useInfiniteQuery({
+    let content;
+    const { data, isError, error, fetchNextPage, hasNextPage, isFetching, isPending } = useInfiniteQuery({
         queryKey: ["todos"],
         initialPageParam: 0,
         queryFn: fetchEvents,
@@ -42,7 +43,7 @@ export default function Giphy() {
 
     const lastElementRef = useCallback(
         (node) => {
-            if (isLoading) return;
+            if (isPending) return;
 
             if (observer.current) observer.current.disconnect();
 
@@ -54,41 +55,47 @@ export default function Giphy() {
 
             if (node) observer.current.observe(node);
         },
-        [fetchNextPage, hasNextPage, isFetching, isLoading]
+        [fetchNextPage, hasNextPage, isFetching, isPending]
     );
-    if (isLoading) {
-        return <h1>Loading...</h1>;
+    if (isPending || isFetching) {
+        content = <LoadingIndicator />
     }
 
-    if (error) return <h1>Error</h1>;
+    else if (isError) {
+        content = (
+            <Error title="An error occurred" message={error.info?.message || "Failed to fetch events"} />
+        );
+    }
+    else {
+        content = <Box sx={{
+            display: 'flex', justifyContent: 'center', width: '100%', minHeight: 1029,
+        }} >
+            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
+                {todos &&
+                    todos.map((item, index) => (
+                        <div key={`${item.id}-${index}`} ref={index === todos.length - 1 ? lastElementRef : null} className="mb-2 break-inside-avoid">
+                            <img
+                                srcSet={`${item.images.original.url}?w=162&auto=format&dpr=2 2x`}
+                                src={`${item.images.original.url}?w=162&auto=format`}
+                                alt={item.title}
+                                loading="lazy"
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                }}
 
+                            />
+                        </div>
+                    ))}
+
+            </div>
+        </Box >
+    }
 
     return (
         <div>
             <Header></Header>
-            <Box sx={{
-                display: 'flex', justifyContent: 'center', width: '100%', minHeight: 1029,
-            }} >
-                <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
-                    {todos &&
-                        todos.map((item, index) => (
-                            <div key={`${item.id}-${index}`} ref={index === todos.length - 1 ? lastElementRef : null} className="mb-2 break-inside-avoid">
-                                <img
-                                    srcSet={`${item.images.original.url}?w=162&auto=format&dpr=2 2x`}
-                                    src={`${item.images.original.url}?w=162&auto=format`}
-                                    alt={item.title}
-                                    loading="lazy"
-                                    style={{
-                                        display: 'block',
-                                        width: '100%',
-                                    }}
-
-                                />
-                            </div>
-                        ))}
-                    {isFetching && <div>Fetching...</div>}
-                </div>
-            </Box >
+            {content}
         </div >
     );
 };
